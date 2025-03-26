@@ -1,0 +1,29 @@
+{
+  "name": "algapi",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mohyacineabed/algAPI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mohyacineabed/algAPI/issues"
+  },
+  "homepage": "https://github.com/mohyacineabed/algAPI#readme",
+  "description": "",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "feedparser": "^2.2.10",
+    "mongoose": "^8.13.0",
+    "node-cron": "^3.0.3",
+    "request": "^2.88.2"
+  }
+}

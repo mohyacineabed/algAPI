@@ -1,38 +1,38 @@
 const axios = require('axios');
-const { Readable } = require('stream'); // Import the Stream module
+const { Readable } = require('stream');
 const FeedParser = require('feedparser');
 const FeedItem = require('../models/Feed');
 
-const RSS_SOURCES = [
-  'http://feeds.aps.dz/aps-societe',
-  'http://feeds.aps.dz/aps-culture',
-  'http://feeds.aps.dz/aps-economie',
-  'http://feeds.aps.dz/aps-algerie',
-  'http://feeds.aps.dz/aps-regions',
-  'http://feeds.aps.dz/APS-Sante-Science-Technologie',
-  'http://feeds.aps.dz/aps-sport',
-  'http://www.alger-republicain.com/spip.php?page=backend'
-];
+// Map RSS sources to categories
+const RSS_SOURCES = {
+  'http://feeds.aps.dz/aps-economie': 'economy',
+  'http://feeds.aps.dz/aps-algerie': 'politics',
+  'http://www.alger-republicain.com/spip.php?page=backend': 'politics',
+  'http://feeds.aps.dz/aps-societe': 'society',
+  'http://feeds.aps.dz/aps-culture': 'culture',
+  'http://feeds.aps.dz/aps-regions': 'regions',
+  'http://feeds.aps.dz/APS-Sante-Science-Technologie': 'health-sience-technology',
+  'http://feeds.aps.dz/aps-sport': 'sport'
+};
 
 const fetchRSSFeeds = async () => {
-  for (const sourceUrl of RSS_SOURCES) {
+  for (const [sourceUrl, category] of Object.entries(RSS_SOURCES)) {
     try {
       const response = await axios.get(sourceUrl, {
-        responseType: 'text', // Ensure the response is treated as text
+        responseType: 'text',
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-          'Referer': sourceUrl.split('/')[2] // Use the domain as the referer
+          'Referer': sourceUrl.split('/')[2]
         }
       });
 
-      // Convert the response data into a readable stream
+      // Convert response data to a stream
       const stream = new Readable();
-      stream.push(response.data); // Push the response data into the stream
-      stream.push(null); // Signal the end of the stream
+      stream.push(response.data);
+      stream.push(null);
 
       const feedparser = new FeedParser();
-
-      stream.pipe(feedparser); // Pipe the stream into FeedParser
+      stream.pipe(feedparser);
 
       feedparser.on('error', (error) => {
         console.error(`Feedparser error for ${sourceUrl}:`, error);
@@ -53,6 +53,7 @@ const fetchRSSFeeds = async () => {
                 author: item.author,
                 guid: item.guid,
                 categories: item.categories,
+                category, // Assign the mapped category
                 source_url: sourceUrl
               },
               { upsert: true, new: true }

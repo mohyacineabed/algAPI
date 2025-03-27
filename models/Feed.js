@@ -12,7 +12,6 @@ const FeedItemSchema = new mongoose.Schema({
   description: String,
   link: {
     type: String,
-    trim: true,
     required: true,
     unique: true
   },
@@ -22,7 +21,20 @@ const FeedItemSchema = new mongoose.Schema({
   },
   author: String,
   guid: String,
-  categories: [String],
+  categories: [String], // Original categories from the RSS feed
+  category: {
+    type: String,
+    enum: [
+      'economy',
+      'politics',
+      'society',
+      'culture',
+      'regions',
+      'health-sience-technology',
+      'sport'
+    ],
+    required: true
+  },
   source_url: String
 }, { timestamps: true });
 

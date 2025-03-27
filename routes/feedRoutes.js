@@ -27,24 +27,20 @@ router.get('/latest', async (req, res) => {
   }
 });
 
-// Filter feeds by source or category
-router.get('/filter', async (req, res) => {
+// Filter feeds by category
+router.get('/category/:category', async (req, res) => {
   try {
-    const { source, category } = req.query;
+    const { category } = req.params;
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 50;
+    const limit = parseInt(req.query.limit) || 20;
     const skip = (page - 1) * limit;
 
-    const query = {};
-    if (source) query.source = { $regex: source, $options: 'i' };
-    if (category) query.categories = category;
-
-    const feeds = await FeedItem.find(query)
+    const feeds = await FeedItem.find({ category })
       .sort({ pubDate: -1 })
       .skip(skip)
       .limit(limit);
 
-    const total = await FeedItem.countDocuments(query);
+    const total = await FeedItem.countDocuments({ category });
 
     res.json({
       page,
@@ -53,7 +49,7 @@ router.get('/filter', async (req, res) => {
       items: feeds
     });
   } catch (error) {
-    res.status(500).json({ message: 'Error filtering feeds', error: error.message });
+    res.status(500).json({ message: 'Error filtering feeds by category', error: error.message });
   }
 });
 

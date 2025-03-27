@@ -2,6 +2,7 @@ const axios = require('axios');
 const { Readable } = require('stream');
 const FeedParser = require('feedparser');
 const FeedItem = require('../models/Feed');
+const logger = require('../utils/logger');
 
 // Map RSS sources to categories
 const RSS_SOURCES = {
@@ -16,8 +17,12 @@ const RSS_SOURCES = {
 };
 
 const fetchRSSFeeds = async () => {
+  logger.info('Starting RSS feed fetching process...');
+
   for (const [sourceUrl, category] of Object.entries(RSS_SOURCES)) {
     try {
+      logger.info(`Fetching RSS feed from ${sourceUrl} (Category: ${category})`);
+
       const response = await axios.get(sourceUrl, {
         responseType: 'text',
         headers: {
@@ -32,10 +37,12 @@ const fetchRSSFeeds = async () => {
       stream.push(null);
 
       const feedparser = new FeedParser();
+      let itemCount = 0;
+
       stream.pipe(feedparser);
 
       feedparser.on('error', (error) => {
-        console.error(`Feedparser error for ${sourceUrl}:`, error);
+        logger.error(`Feedparser error for ${sourceUrl}:`, error.message);
       });
 
       feedparser.on('readable', async function () {
@@ -58,15 +65,22 @@ const fetchRSSFeeds = async () => {
               },
               { upsert: true, new: true }
             );
+            itemCount++;
           } catch (error) {
-            console.error('Error saving feed item:', error);
+            logger.error('Error saving feed item:', error.message);
           }
         }
       });
+
+      feedparser.on('end', () => {
+        logger.info(`Fetched ${itemCount} items from ${sourceUrl} (Category: ${category})`);
+      });
     } catch (error) {
-      console.error(`Error fetching RSS from ${sourceUrl}:`, error.message);
+      logger.error(`Error fetching RSS from ${sourceUrl}:`, error.message);
     }
   }
+
+  logger.info('RSS feed fetching process completed.');
 };
 
 module.exports = fetchRSSFeeds;
